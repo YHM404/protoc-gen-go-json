@@ -1,0 +1,8 @@
+version: v1
+plugins:
+  - name: go
+    out: .
+    opt: paths=source_relative
+  - name: go-json  # 假设您的插件已安装并可以通过 go-json 访问
+    out: .
+    opt: paths=source_relative

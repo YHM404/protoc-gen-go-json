@@ -11,6 +11,7 @@ import (
 
 const (
 	defaultFilenameSuffix = ".pb.json.go"
+	binaryFilenameSuffix  = ".pb.binary.go" // 二进制序列化文件的后缀
 )
 
 func Handle(
@@ -35,7 +36,11 @@ func Handle(
 	w.AddCodeGeneratorResponseFiles(response.GetFile()...)
 	w.AddError(response.GetError())
 	w.SetFeatureProto3Optional()
-	w.SetFeatureSupportsEditions(descriptorpb.Edition_EDITION_PROTO3, descriptorpb.Edition_EDITION_MAX)
+	// 修改这里以支持 Proto2 和 Proto3
+	w.SetFeatureSupportsEditions(
+		descriptorpb.Edition_EDITION_PROTO2, // 添加对 Proto2 的支持
+		descriptorpb.Edition_EDITION_PROTO3,
+	)
 	return nil
 }
 
@@ -44,10 +49,19 @@ func generate(p *protogen.Plugin, opt *gen.Options) error {
 		if !f.Generate || len(f.Messages) == 0 {
 			continue
 		}
+
 		g := p.NewGeneratedFile(f.GeneratedFilenamePrefix+defaultFilenameSuffix, f.GoImportPath)
 		if err := gen.ApplyTemplate(g, f, opt); err != nil {
 			g.Skip()
-			return nil
+			return err
+		}
+
+		if opt.GenerateBinary || opt.GenerateMarshal || opt.GenerateUnmarshal {
+			binaryG := p.NewGeneratedFile(f.GeneratedFilenamePrefix+binaryFilenameSuffix, f.GoImportPath)
+			if err := gen.ApplyBinaryTemplate(binaryG, f, opt); err != nil {
+				binaryG.Skip()
+				return err
+			}
 		}
 	}
 	return nil

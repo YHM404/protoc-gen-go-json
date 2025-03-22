@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -15,7 +16,14 @@ var supportedOptions = map[string]func(*gen.Options, string) error{
 	"emit_defaults_without_null": func(o *gen.Options, value string) error { return parseBool(&o.EmitDefaultValues, value) },
 	"orig_name":                  func(o *gen.Options, value string) error { return parseBool(&o.OrigName, value) },
 	// Unmarshal options
-	"allow_unknown": func(o *gen.Options, value string) error { return parseBool(&o.AllowUnknownFields, value) },
+	"allow_unknown": func(o *gen.Options, value string) error {
+		fmt.Fprintf(os.Stderr, "Parsing allow_unknown option: %s\n", value)
+		return parseBool(&o.AllowUnknownFields, value)
+	},
+	// Binary options
+	"generate_binary":    func(o *gen.Options, value string) error { return parseBool(&o.GenerateBinary, value) },
+	"generate_marshal":   func(o *gen.Options, value string) error { return parseBool(&o.GenerateMarshal, value) },
+	"generate_unmarshal": func(o *gen.Options, value string) error { return parseBool(&o.GenerateUnmarshal, value) },
 }
 
 func parseOptions(raw string) (*gen.Options, error) {
@@ -36,6 +44,12 @@ func parseOptions(raw string) (*gen.Options, error) {
 			}
 		}
 	}
+
+	if opts.GenerateBinary && !opts.GenerateMarshal && !opts.GenerateUnmarshal {
+		opts.GenerateMarshal = true
+		opts.GenerateUnmarshal = true
+	}
+
 	return opts, nil
 }
 

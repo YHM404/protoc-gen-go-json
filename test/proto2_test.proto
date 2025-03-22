@@ -1,0 +1,25 @@
+syntax = "proto2";
+
+package test;
+
+option go_package = "github.com/mfridman/protoc-gen-go-json/test";
+
+message Proto2Message {
+  required string required_field = 1;
+  optional string optional_field = 2 [default = "default value"];
+  repeated int32 repeated_field = 3;
+  
+  optional NestedMessage nested = 4;
+  
+  message NestedMessage {
+    optional string inner_field = 1;
+  }
+  
+  enum EnumType {
+    UNKNOWN = 0;
+    VALUE1 = 1;
+    VALUE2 = 2;
+  }
+  
+  optional EnumType enum_field = 5 [default = VALUE1];
+}
